@@ -1,28 +1,35 @@
+import time
+import json
+import os
+
 from Checker import Checker
 from Detector import Detector
 from Visualizer import Visualizer
 
-import json
-
-FRAME_PATH = "/home/arnaldo/Documents/TEST_FRAMES/test_1.png"
+FRAME_PATH = "/home/arnaldo/SafeBox/projetao/frame.png"
+JSON_PATH = "/home/arnaldo/SafeBox/projetao/jsons/"
 
 detector = Detector("https://tfhub.dev/tensorflow/efficientdet/lite2/detection/1")
-net_out = detector.run(FRAME_PATH)
-
-with open('cam1.json') as json_file:
-    web_out = json.load(json_file)
-
 checador = Checker()
 
-alerts = checador.check(net_out=net_out,
-                        web_out=web_out,
-                        iou_thresh=0.5)
+listing = os.listdir(JSON_PATH)
 
-print(alerts)
+while True:
+    for cam in listing:
+        if cam != '.gitkeep':
+            with open(JSON_PATH+cam) as json_file:
+                time.sleep(18)
 
-visualizer = Visualizer(frame_path=FRAME_PATH,
-                        net_out=net_out,
-                        web_out=web_out)
+                net_out = detector.run(FRAME_PATH)
+                web_out = json.load(json_file)
 
-visualizer.view()
+                alerts = checador.check(net_out=net_out,
+                                        web_out=web_out)
+
+                with open(os.path.join(JSON_PATH, 'alerts.json'), "w") as out_file:
+                    json.dump(alerts, out_file, indent=2)
+
+
+
+
 

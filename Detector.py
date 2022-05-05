@@ -31,8 +31,10 @@ class Detector:
         output = {}
 
         for i, (score, (y1, x1, y2, x2), label) in enumerate(zip(pred_scores, pred_boxes, pred_labels)):
-            if score < 0.5 or label != 'person':
+
+            if score < 0.3 or label != 'person':
                 continue
+
 
             output[i] = {'label': label,
                          'y1': str(y1),
@@ -41,14 +43,13 @@ class Detector:
                          'x2': str(x2)
                          }
 
-            #img_boxes = cv.rectangle(frame,(xmin, ymax),(xmax, ymin),(0,255,0),2)
 
         if self.write_output:
             with open('output.json', 'w') as out_file:
                 json.dump(output, out_file, indent=2)
 
         return output
-        #cv.imwrite('output.png', img_boxes)
+
 
 if __name__ == '__main__':
     detector = Detector("https://tfhub.dev/tensorflow/efficientdet/lite2/detection/1")

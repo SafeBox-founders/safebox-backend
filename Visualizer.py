@@ -20,6 +20,4 @@ class Visualizer:
                                      (int(self.web_out[out]['x2']), int(self.web_out[out]['y1'])),
                                      (0, 0, 255), 2)
 
-
-        cv.imshow('Visualizer', img_boxes)
-        cv.waitKey()
+        cv.imwrite('safeboxes.png', img_boxes)

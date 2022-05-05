@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+
 
 class Checker:
     def __init__(self):
@@ -20,13 +21,14 @@ class Checker:
         return iou
 
     def __str_to_time(self, time_str):
-        return datetime.strptime(time_str, '%H:%M:%S').time()
+        return datetime.strptime(time_str, '%m/%d/%y %H:%M:%S')
 
-    def check(self, net_out, web_out, iou_thresh=0.5):
-        check_output = []
+    def check(self, net_out, web_out):
+        check_output = {}
 
         now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
+        current_time = now.strftime("%m/%d/%y %H:%M:%S")
+        current_date = now.strftime("%m/%d/%y")
 
         for box in web_out:
             start = web_out[box]['start']
@@ -34,18 +36,34 @@ class Checker:
             min = web_out[box]['min']
             max = web_out[box]['max']
 
+
             safebox = (int(web_out[box]['x1']), int(web_out[box]['y1']), int(web_out[box]['x2']), int(web_out[box]['y2']))
             person_count = 0
             for out in net_out:
                 detection = (int(net_out[out]['x1']), int(net_out[out]['y1']), int(net_out[out]['x2']), int(net_out[out]['y2']))
-                if self.__iou(safebox, detection) > iou_thresh:
+                if self.__iou(safebox, detection) != 0:
                     person_count += 1
 
-            if self.__str_to_time(start) < self.__str_to_time(current_time) < self.__str_to_time(end):
+            # gambiarra (s/n)
+            end_date = current_date
+            if self.__str_to_time(current_time) > self.__str_to_time(current_date+" "+end):
+                end_date = end_date.split('/')
+                end_date[1] = str(int(end_date[1])+1)
+                end_date = '/'.join(end_date)
+
+            if self.__str_to_time(current_date+" "+start) < self.__str_to_time(current_time) < self.__str_to_time(end_date+" "+end):
+                tmp = current_time.split(" ")
+
                 if person_count < int(min):
-                    check_output.append("Min alert in {} - {}".format(box, current_time))
+                    check_output[box] = {'alert': 'min',
+                                         'date': tmp[0],
+                                         'time': tmp[1]}
+
                 if person_count > int(max):
-                    check_output.append("Max alert in {} - {}".format(box, current_time))
+                    check_output[box] = {'alert': 'max',
+                                         'date': tmp[0],
+                                         'time': tmp[1]}
+
 
         return check_output
 
